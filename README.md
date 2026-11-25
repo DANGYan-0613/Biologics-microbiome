@@ -60,7 +60,7 @@ The declared parameter space has144 possible ExtraTrees configurations:
 | Parameter | Values |
 |---|---|
 | `n_estimators` | 300,700 |
-| `max_depth` | 3,5,7 |
+| `max_depth` | 3,5 |
 | `min_samples_leaf` | 2,4,6 |
 | `min_samples_split` | 2,5 |
 | `max_features` | sqrt,0.5 |
