@@ -96,8 +96,7 @@ def development_figures(root,out):
     cutoff=json.loads((root/"locked_threshold.json").read_text())["threshold_nonresponse"]
     methods=(
         "METHODS\n\nWe developed a microbiome-only classifier in175 public patients using fixed three-group "
-        "leave-one-group-out cross-validation (validation sizes114,39,22). No random patient-level split "
-        "or additional inner validation was introduced. For every candidate, raw prevalence>=20% and "
+        "leave-one-group-out cross-validation (validation sizes114,39,22). For every candidate, raw prevalence>=20% and "
         "sample-variance>1e-12 filtering, Species natural-log CLR, and standardization were fitted only "
         "within the two training groups. The CLR pseudocount was half the minimum positive training "
         "abundance, and all training-retained Species formed the CLR reference. PWY remained on the "
@@ -144,7 +143,7 @@ def external_figures(root,out):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--development-dir",type=Path,default=Path("outputs/extratrees_v2"))
+    parser.add_argument("--development-dir",type=Path,default=Path("outputs/development"))
     parser.add_argument("--external-dir",type=Path)
     parser.add_argument("--output",type=Path,default=Path("outputs/figures"))
     args=parser.parse_args()

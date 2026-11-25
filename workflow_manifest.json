@@ -1,0 +1,19 @@
+{
+  "title": "Development of a Species + PWY ExtraTrees Prediction Model",
+  "development_samples": 175,
+  "validation_groups": {
+    "G1": ["PRJNA685168"],
+    "G2": ["SRP057027"],
+    "G3": ["PRJNA384246", "PRJNA389280", "PRJNA398089"]
+  },
+  "positive_event": "Non-response",
+  "selector_count_options": 28,
+  "classifier_configurations": 48,
+  "candidate_pipelines": 1344,
+  "parameter_space_combinations": 144,
+  "selection_and_evaluation": "Same fixed LOGO folds; internally optimized development estimate",
+  "execution_status": "Implementation and synthetic tests complete; study-specific outputs require running the workflow",
+  "external_evaluation_scope": "Previously explored Chinese cohort; locked model and public OOF cutoff",
+  "patient_data_included": false,
+  "model_binaries_included": false
+}

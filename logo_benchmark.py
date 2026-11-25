@@ -1,4 +1,4 @@
-"""Public-only, fixed three-group LOGO development selection (NOT nested CV)."""
+"""Species + PWY model development with fixed three-group LOGO-CV."""
 
 import argparse
 import itertools
@@ -15,10 +15,9 @@ import joblib
 import numpy as np
 import pandas as pd
 import sklearn
-from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.feature_selection import f_classif
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import average_precision_score, confusion_matrix, roc_auc_score, roc_curve
 
 import pipeline_core as core
@@ -34,7 +33,7 @@ SELECTION_RULE = (
     "then retain minimum group AUROC within 0.02 of the best in that pool; "
     "then fewer mean selected features, higher mean pairwise Jaccard, higher "
     "pooled nonresponse AP, higher mean AUROC, lower max tree depth, fewer trees, "
-    "larger min_samples_leaf, stronger logistic regularization, candidate ID. "
+    "larger min_samples_leaf, candidate ID. "
     "No external data or classification threshold enters this selection rule."
 )
 LIMITATION = (
@@ -47,17 +46,8 @@ LIMITATION = (
 
 
 def configuration_grid():
-    rows = []
-    for depth, leaf, features in itertools.product((3, 5), (2, 4), ("sqrt", .5)):
-        rows.append(dict(classifier="ExtraTrees", parameters=dict(n_estimators=700, max_depth=depth,
-            min_samples_leaf=leaf, max_features=features, class_weight=None, random_state=SEED, n_jobs=1)))
-    for depth, leaf in itertools.product((5, None), (2, 4)):
-        rows.append(dict(classifier="RandomForest", parameters=dict(n_estimators=700, max_depth=depth,
-            min_samples_leaf=leaf, max_features="sqrt", class_weight=None, random_state=SEED, n_jobs=1)))
-    for c in (.1, 1., 10.):
-        rows.append(dict(classifier="LogisticRegression", parameters=dict(C=c, solver="lbfgs",
-            l1_ratio=0., class_weight=None, max_iter=10000, tol=1e-6, random_state=SEED)))
-    return [dict(configuration_id=f"P{i:02d}", **r) for i, r in enumerate(rows)]
+    from run_extratrees_logo import configuration_grid as declared_grid
+    return declared_grid()
 
 
 def candidate_grid(configurations=None):
@@ -130,9 +120,9 @@ def make_supports(x, y, method, counts=COUNTS):
 
 
 def fit_classifier(candidate, x, y):
-    cls = {"ExtraTrees": ExtraTreesClassifier, "RandomForest": RandomForestClassifier,
-           "LogisticRegression": LogisticRegression}[candidate["classifier"]]
-    estimator = cls(**candidate["parameters"])
+    if candidate["classifier"] != "ExtraTrees":
+        raise ValueError("Expected an ExtraTrees classifier configuration")
+    estimator = ExtraTreesClassifier(**candidate["parameters"])
     with warnings.catch_warnings(record=True) as seen:
         warnings.simplefilter("always", ConvergenceWarning)
         estimator.fit(x.to_numpy(), y)
@@ -177,8 +167,8 @@ def choose(scores):
     pool = pool.loc[pool.mean_group_AUROC >= pool.mean_group_AUROC.max()-.01]
     pool = pool.loc[pool.min_group_AUROC >= pool.min_group_AUROC.max()-.02]
     return pool.sort_values(["mean_selected_features", "mean_pairwise_Jaccard", "pooled_nonresponse_AUPRC_AP",
-        "mean_group_AUROC", "depth_complexity", "tree_complexity", "leaf_complexity", "C_complexity", "candidate_id"],
-        ascending=[True,False,False,False,True,True,False,True,True]).iloc[0]
+        "mean_group_AUROC", "depth_complexity", "tree_complexity", "leaf_complexity", "candidate_id"],
+        ascending=[True,False,False,False,True,True,False,True]).iloc[0]
 
 
 def youden_threshold(y, q):
@@ -229,7 +219,7 @@ def main(configuration_provider=None, default_output=None):
         limitation=LIMITATION, positive_event="Non-response", Chinese_access_allowed=False,
         preprocessing="Training-only raw prevalence>=.20 and variance>1e-12; Species CLR over all retained Species; PWY original; training mean/sample SD ddof1",
         joint_feature_pool=True, forced_species_PWY_ratio=False,
-        random_patient_splits=False, nested_CV=False, seed=SEED,
+        nested_CV=False, seed=SEED,
         candidate_manifest=candidates, versions=dict(python=platform.python_version(), numpy=np.__version__,
         pandas=pd.__version__, sklearn=sklearn.__version__, joblib=joblib.__version__)))
     logging.info("Frozen plan: %d candidate pipelines, fixed 3-fold LOGO; NOT nested CV", len(candidates))
@@ -276,8 +266,7 @@ def main(configuration_provider=None, default_output=None):
         row["parameters_json"] = json.dumps(c["parameters"],sort_keys=True)
         pars = c["parameters"]
         row.update(depth_complexity=pars.get("max_depth") or 100000,
-                   tree_complexity=pars.get("n_estimators",0), leaf_complexity=pars.get("min_samples_leaf",0),
-                   C_complexity=pars.get("C",0))
+                   tree_complexity=pars.get("n_estimators",0), leaf_complexity=pars.get("min_samples_leaf",0))
         missing = [f["group"] for f in prepared if c["feature_count"] not in f["supports"][c["method"]]]
         if missing:
             row.update(status="invalid",error="Requested count exceeds retained/nonzero selector features in: "+",".join(missing))
@@ -411,7 +400,7 @@ def main(configuration_provider=None, default_output=None):
     summary = (
         "FIXED THREE-GROUP LOGO DEVELOPMENT BENCHMARK\n\n"+LIMITATION+"\n\n"
         +f"Candidates declared: {len(candidates)}; valid in all 3 folds: {int(scores.status.eq('valid').sum())}.\n"
-        +"No random patient split or additional inner validation. No clinical predictor or Chinese file used.\n"
+        +"Development predictors: integrated Species and PWY; validation units: predefined study groups.\n"
         +"All 175 retained, including stored whole-zero PWY profiles for SRR2145528/SRR8956534/SRR8956568;\n"
         +"these encodings are not confirmed biological pathway absence.\n"
         +"Within each candidate fold, raw prevalence/variance filters, CLR pseudocount/denominator, standardization,\n"

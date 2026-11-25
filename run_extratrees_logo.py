@@ -1,4 +1,4 @@
-"""ExtraTrees-only extension of the fixed LOGO engine; NOT nested CV."""
+"""Develop a Species + PWY ExtraTrees prediction model using fixed LOGO-CV."""
 
 import itertools
 from pathlib import Path
@@ -35,4 +35,4 @@ def configuration_grid():
 
 
 if __name__=="__main__":
-    benchmark.main(configuration_provider=configuration_grid,default_output=Path("outputs/extratrees_v2"))
+    benchmark.main(configuration_provider=configuration_grid,default_output=Path("outputs/development"))

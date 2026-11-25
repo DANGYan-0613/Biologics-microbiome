@@ -11,25 +11,25 @@ import numpy as np
 import pandas as pd
 
 import logo_benchmark as b
-import run_extratrees_logo as extended
+import run_extratrees_logo as pipeline
 import evaluate_external as evaluation
-import validate_external_C0319 as source
+import external_inputs as source
 
 
-class ExtendedTests(unittest.TestCase):
+class PipelineTests(unittest.TestCase):
     def test_full_space_and_sample_coverage(self):
-        configurations=extended.configuration_grid()
-        self.assertEqual(np.prod([len(v) for v in extended.SPACE.values()]),144)
+        configurations=pipeline.configuration_grid()
+        self.assertEqual(np.prod([len(v) for v in pipeline.SPACE.values()]),144)
         self.assertEqual(len(configurations),48)
         self.assertEqual(len({json.dumps(c["parameters"],sort_keys=True) for c in configurations}),48)
-        for name,values in extended.SPACE.items():
+        for name,values in pipeline.SPACE.items():
             self.assertEqual({c["parameters"][name] for c in configurations},set(values))
         self.assertTrue(all(c["classifier"]=="ExtraTrees" for c in configurations))
         self.assertEqual(len(b.candidate_grid(configurations)),1344)
 
     def test_paired_weights_and_reproducibility(self):
-        configurations=extended.configuration_grid()
-        self.assertEqual(configurations,extended.configuration_grid())
+        configurations=pipeline.configuration_grid()
+        self.assertEqual(configurations,pipeline.configuration_grid())
         for first,second in zip(configurations[::2],configurations[1::2]):
             a=first["parameters"].copy(); z=second["parameters"].copy()
             self.assertIsNone(a.pop("class_weight"))
@@ -107,6 +107,9 @@ class ExtendedTests(unittest.TestCase):
             self.assertEqual(result.TP+result.FN,13)
             self.assertEqual(result.TN+result.FP,39)
             self.assertEqual(result.threshold_nonresponse,payload["threshold_nonresponse"])
+            import verify_external_results as verification
+            with patch.object(source,"EXTERNAL_SHA256",hashes):
+                self.assertEqual(verification.verify(dev,ext,output)["status"],"PASS")
             import make_figures as figures
             rendered=[]
             def capture(fig,path):

@@ -32,7 +32,7 @@ def verify(out):
         assert b.core.sha(Path(path).read_bytes())==b.core.EXPECTED_HASHES[k]
         assert b.core.sha((out/"input_snapshot"/Path(path).name).read_bytes())==b.core.EXPECTED_HASHES[k]
     assert len(scores)==plan["candidate_N"]
-    assert not plan["nested_CV"] and not plan["random_patient_splits"] and not plan["Chinese_access_allowed"]
+    assert not plan["nested_CV"] and not plan["Chinese_access_allowed"]
     assert set(scores.candidate_id)=={c["candidate_id"] for c in plan["candidate_manifest"]}
     frozen={c["candidate_id"]:c for c in plan["candidate_manifest"]}
     for _,row in scores.iterrows():
@@ -89,8 +89,8 @@ def verify(out):
     eligible=valid.loc[valid.mean_group_AUROC>=valid.mean_group_AUROC.max()-.01]
     eligible=eligible.loc[eligible.min_group_AUROC>=eligible.min_group_AUROC.max()-.02]
     ordered=eligible.sort_values(["mean_selected_features","mean_pairwise_Jaccard","pooled_nonresponse_AUPRC_AP",
-        "mean_group_AUROC","depth_complexity","tree_complexity","leaf_complexity","C_complexity","candidate_id"],
-        ascending=[True,False,False,False,True,True,False,True,True])
+        "mean_group_AUROC","depth_complexity","tree_complexity","leaf_complexity","candidate_id"],
+        ascending=[True,False,False,False,True,True,False,True])
     assert selected["candidate_id"]==ordered.iloc[0].candidate_id
     assert scores.loc[scores.selected,"candidate_id"].tolist()==[selected["candidate_id"]]
     chosen=predictions.loc[predictions.candidate_id.eq(selected["candidate_id"])].reset_index(drop=True)

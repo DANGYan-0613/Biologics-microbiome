@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 import logo_benchmark as b
-import validate_external_C0319 as source
+import external_inputs as source
 
 
 def locked_payload(development):
@@ -60,7 +60,7 @@ def bootstrap_intervals(y,q,threshold,repetitions=5000,seed=20261125):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--development-dir",type=Path,default=Path("outputs/extratrees_v2"))
+    parser.add_argument("--development-dir",type=Path,default=Path("outputs/development"))
     parser.add_argument("--input-dir",type=Path,default=Path("data/external"))
     parser.add_argument("--output",type=Path)
     parser.add_argument("--bootstrap",type=int,default=5000)

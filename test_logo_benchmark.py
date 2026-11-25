@@ -19,12 +19,12 @@ class LOGOTests(unittest.TestCase):
 
     def test_grid_is_fixed_complete_product(self):
         grid = b.candidate_grid()
-        self.assertEqual(len(grid),420)
-        self.assertEqual(len({c["candidate_id"] for c in grid}),420)
-        self.assertEqual(len(b.configuration_grid()),15)
+        self.assertEqual(len(grid),1344)
+        self.assertEqual(len({c["candidate_id"] for c in grid}),1344)
+        self.assertEqual(len(b.configuration_grid()),48)
         for m in b.METHODS:
             for k in b.COUNTS:
-                self.assertEqual(sum(c["method"]==m and c["feature_count"]==k for c in grid),15)
+                self.assertEqual(sum(c["method"]==m and c["feature_count"]==k for c in grid),48)
 
     def test_no_heldout_in_preprocessing_or_any_selector(self):
         meta,s,p = self.fixture()
