@@ -7,7 +7,7 @@ import numpy as np
 
 import logo_benchmark as benchmark
 
-SPACE={"n_estimators":(300,700),"max_depth":(3,5,7),"min_samples_leaf":(2,4,6),
+SPACE={"n_estimators":(300,700),"max_depth":(3,5),"min_samples_leaf":(2,4,6),
        "min_samples_split":(2,5),"max_features":("sqrt",.5),"class_weight":(None,"balanced")}
 
 
